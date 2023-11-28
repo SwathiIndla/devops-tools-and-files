@@ -1,0 +1,147 @@
+Jenkins Distributed Build
+
+Create couple of AWS Ubuntu 22.04 instances
+
+Name as
+
+-	Master
+-	Node1
+
+Go to Master Node User Data section
+
+Apply below 
+
+#!/bin/bash
+sudo su
+apt-get update
+apt install openjdk-11-jdk -y
+
+
+Worker Node User Data section
+
+#!/bin/bash
+sudo su
+apt-get update
+apt install openjdk-11-jdk -y
+
+**************************************************************************************************************************
+
+Go Master Node and worker node
+
+Ensure Java installed or not
+
+java -version
+
+**************************************************************************************************************************
+
+Jenkins Installation at Master Node
+
+wget -q -O - https://pkg.jenkins.io/debian/jenkins.io.key | sudo apt-key add -
+
+sh -c 'echo deb https://pkg.jenkins.io/debian-stable binary/ > /etc/apt/sources.list.d/jenkins.list'
+
+apt-get update -y
+[Please note you are getting GPG error and no public key. Copy value of public key and apply as per below]
+
+
+apt-key adv --keyserver keyserver.ubuntu.com --recv-keys <PUBLIC KEY>
+Ex: apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 5BA31D57EF5975CA
+
+apt-get update -y
+
+apt-get install jenkins -y
+
+Ensure Jenkins Installed or not, apply below
+
+systemctl status jenkins	
+
+
+Sign in Jenkins 
+
+Go to AWS EC2 Console and select master node public DNS value or Public Ip and go to any browser apply below
+
+Choose public ip address or Public IPv4 DNS:8080 (Jenkins Default port number)
+
+Example : http://ec2-54-173-81-29.compute-1.amazonaws.com:8080
+
+Obtain Jenkins Password
+Go to Jenkins Master node and apply as per below
+
+cat /var/lib/jenkins/secrets/initialAdminPassword
+Copy password
+
+Apply it Jenkins sign in web page of Administrator password section
+
+Press continue 
+
+Install Jenkins Plugin
+
+Add Jenkins login and Password
+**************************************************************************************************************************
+Obtain Root Password
+
+Go to Node1
+
+-	Provide root user password, by applying below
+
+-	passwd root
+
+-	Give password to root and remember it
+
+_______________________________________________________________________________________
+
+Go to Master
+
+-	Apply SSH
+
+-	ssh-keygen (Don't feed any data and keep on enter button)
+___________________________________________________________________________________________________________________
+Only worker node
+Below Process for ensure that Master can connect worker node without password
+
+Go to  Node1 sshd_config file and do the below changes
+
+Path is : vi /etc/ssh/sshd_config
+
+Go to PermitRootLogin
+Replace prohibit passward with yes and remove #
+PermitRootLogin yes
+
+Go to PasswordAuthentication
+Replace no with yes for PasswordAuthentication
+PasswordAuthentication yes
+
+Restart the configure file 
+service sshd restart
+______________________________________________________________________________________________________________
+
+Go to Master
+
+This is for addding SSH Key 
+
+- a)	By apply below commands
+
+- b)	ssh-copy-id root@<<private ip address of worker node>>
+- c)	Eg: ssh-copy-id root@172.31.47.75 
+
+- d)	root is a user name of Node1
+- e)	Private ip address : provide Node1 private ip address
+
+- f)	When you applying first time, system prompt to ask password
+
+- g)	You need to provide, Node1 root user password
+**************************************************************************************************************************
+
+Ensure that, from Master node you can get into worker node without asking password
+
+- 	Apply below
+
+	ssh root@<Node1 Private ip address>
+	Ex: ssh root@172.xxx.xx.xx
+
+	System is redirecting to Node1 w/o asking password
+	
+	
+	By applying below commends
+	exit
+	You can exit from Node1 to Master
